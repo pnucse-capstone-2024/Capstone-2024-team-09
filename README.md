@@ -38,7 +38,7 @@
   ```
 
 2. **nginx.conf 수정**
-  - 개발자의 AWS EC2 IP에 맞게 nginx.conf가 작성되있으므로 사용환경에 맞는 파일수정이 필요합니다.
+  - 배포용 AWS EC2 IP에 맞게 nginx.conf가 작성되있으므로 사용환경에 맞는 파일수정이 필요합니다.
 
 3. **Docker 컨테이너 실행**
   ```bash
