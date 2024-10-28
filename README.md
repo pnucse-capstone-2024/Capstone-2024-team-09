@@ -46,7 +46,7 @@
   ```
 
 ## 4. 소개 및 시연 영상
-[![소개 영상](http://img.youtube.com/vi/zh_gQ_lmLqE/0.jpg)](https://www.youtube.com/watch?v=zh_gQ_lmLqE)
+[![소개 영상](http://img.youtu.be/l7MMZJQWQFQ?si=9MXV9UujhpPNkH_7/0.jpg)](https://youtu.be/l7MMZJQWQFQ?si=9MXV9UujhpPNkH_7)
 
 ## 5. 팀 소개
 
