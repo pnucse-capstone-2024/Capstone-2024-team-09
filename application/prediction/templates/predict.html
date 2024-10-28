@@ -1,0 +1,184 @@
+<!-- prediction/templates/predict.html -->
+{% extends 'base.html' %}
+
+{% block title %}암 발병 예측 | 암 예측 서비스{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h3 class="text-center">특성 입력란</h3>
+        <form id="predict-form" method="POST">
+            {% csrf_token %}
+            <!-- 나이 입력 -->
+            <div class="form-group">
+                <label for="Age">나이</label>
+                <input type="number" class="form-control" name="Age" id="Age" required>
+            </div>
+            <!-- 성별 선택 -->
+            <div class="form-group">
+                <label>성별</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Gender" id="gender_male" value="0" required>
+                    <label class="form-check-label" for="gender_male">남성</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Gender" id="gender_female" value="1" required>
+                    <label class="form-check-label" for="gender_female">여성</label>
+                </div>
+            </div>
+            <!-- 키 입력 -->
+            <div class="form-group">
+                <label for="height">키 (cm)</label>
+                <input type="number" step="0.1" class="form-control" name="height" id="height" placeholder="예: 175" required>
+            </div>
+            <!-- 몸무게 입력 -->
+            <div class="form-group">
+                <label for="weight">몸무게 (kg)</label>
+                <input type="number" step="0.1" class="form-control" name="weight" id="weight" placeholder="예: 70" required>
+            </div>
+            <!-- BMI 표시 -->
+            <div class="form-group">
+                <label for="bmi_display">계산된 BMI</label>
+                <input type="text" class="form-control" id="bmi_display" readonly>
+            </div>
+            <!-- BMI hidden 필드 -->
+            <input type="hidden" name="BMI" id="bmi">
+            <!-- 흡연 여부 선택 -->
+            <div class="form-group">
+                <label>흡연 여부</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Smoking" id="smoking_yes" value="1" required>
+                    <label class="form-check-label" for="smoking_yes">예</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Smoking" id="smoking_no" value="0" required>
+                    <label class="form-check-label" for="smoking_no">아니요</label>
+                </div>
+            </div>
+            <!-- 일주일 간 운동시간 입력 -->
+            <div class="form-group">
+                <label for="PhysicalActivity">일주일 간 운동시간 (시간)</label>
+                <input type="number" step="0.1" class="form-control" name="PhysicalActivity" id="PhysicalActivity" placeholder="예: 7" required>
+            </div>
+            <!-- 일주일 간 음주량 선택 -->
+            <div class="form-group">
+                <label>일주일 간 음주량</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_none" value="0" required>
+                    <label class="form-check-label" for="alcohol_none">음주 안 함</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_1_can" value="1" required>
+                    <label class="form-check-label" for="alcohol_1_can">맥주 1캔</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_2_can" value="2" required>
+                    <label class="form-check-label" for="alcohol_2_can">맥주 2캔</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_3_can" value="3" required>
+                    <label class="form-check-label" for="alcohol_3_can">맥주 3캔</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_4_can" value="4" required>
+                    <label class="form-check-label" for="alcohol_4_can">맥주 4캔</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="AlcoholIntake" id="alcohol_5_can" value="5" required>
+                    <label class="form-check-label" for="alcohol_5_can">맥주 5캔 이상</label>
+                </div>
+            </div>
+            <!-- 암 발병 경험 선택 -->
+            <div class="form-group">
+                <label>암 발병 경험</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CancerHistory" id="cancer_history_yes" value="1" required>
+                    <label class="form-check-label" for="cancer_history_yes">예</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CancerHistory" id="cancer_history_no" value="0" required>
+                    <label class="form-check-label" for="cancer_history_no">아니요</label>
+                </div>
+            </div>
+            <!-- 예측 버튼 -->
+            <button type="button" class="btn btn-primary btn-block" onclick="calculateAndSubmit()">암 발병 예측</button>
+        </form>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.getElementById("height").addEventListener("input", updateBMI);
+        document.getElementById("weight").addEventListener("input", updateBMI);
+
+        function updateBMI() {
+            var height_cm = parseFloat(document.getElementById("height").value);
+            var weight = parseFloat(document.getElementById("weight").value);
+
+            if (isNaN(height_cm) || isNaN(weight) || height_cm <= 0 || weight <= 0) {
+                document.getElementById("bmi_display").value = "";
+                return;
+            }
+
+            var height_m = height_cm / 100;
+            var bmi = weight / (height_m * height_m);
+            document.getElementById("bmi_display").value = bmi.toFixed(2);
+        }
+        function calculateAndSubmit() {
+            // 키(cm)를 가져옴
+            var height_cm = parseFloat(document.getElementById("height").value);
+            var weight = parseFloat(document.getElementById("weight").value);
+
+            if (isNaN(height_cm) || isNaN(weight) || height_cm <= 0 || weight <= 0) {
+                alert("키와 몸무게를 올바르게 입력해주세요.");
+                return;
+            }
+
+            var height_m = height_cm / 100;  // cm를 m로 변환
+
+            // BMI 계산
+            var bmi = weight / (height_m * height_m);
+            // BMI 값을 사용자에게 표시
+            document.getElementById("bmi_display").value = bmi.toFixed(2);
+            // 계산된 BMI를 hidden input에 저장
+            document.getElementById("bmi").value = bmi.toFixed(2);
+
+            // 음주량을 선택한 값 가져오기
+            var alcoholOption = document.querySelector('input[name="AlcoholIntake"]:checked');
+            if (!alcoholOption) {
+                alert("일주일 간 음주량을 선택해주세요.");
+                return;
+            }
+            var alcoholValue = alcoholOption.value;
+
+            // 알코올 유닛을 선택에 따라 계산 (맥주 330ml = 1유닛)
+            var alcoholUnit = 0;
+            switch (alcoholValue) {
+                case '0':
+                    alcoholUnit = 0;  // 음주 안 함
+                    break;
+                case '1':
+                    alcoholUnit = 1;  // 맥주 1캔 (1유닛)
+                    break;
+                case '2':
+                    alcoholUnit = 2;  // 맥주 2캔 (2유닛)
+                    break;
+                case '3':
+                    alcoholUnit = 3;  // 맥주 3캔 (3유닛)
+                    break;
+                case '4':
+                    alcoholUnit = 4;  // 맥주 4캔 (4유닛)
+                    break;
+                case '5':
+                    alcoholUnit = 5;  // 맥주 5캔 이상 (5유닛 이상)
+                    break;
+                default:
+                    alcoholUnit = 0;
+            }
+
+            // 'AlcoholIntake' 필드에 실제 유닛 값을 설정
+            alcoholOption.value = alcoholUnit;
+
+            // 폼을 제출
+            document.getElementById("predict-form").submit();
+        }
+    </script>
+{% endblock %}
